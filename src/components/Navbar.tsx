@@ -11,6 +11,7 @@ import {
   Layers,
   Lock,
   LogOut,
+  Menu,
   MessageCircle,
   Navigation,
   Radio,
@@ -19,7 +20,8 @@ import {
   ShieldCheck,
   User,
   UserCheck,
-  Users
+  Users,
+  X
 } from 'lucide-react';
 import { RealBackendService } from '../services/realBackend';
 import { NotificationItem, Profile } from '../types';
@@ -42,6 +44,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   notifications,
 }) => {
   const [showNotifications, setShowNotifications] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   const handleSignOut = async () => {
@@ -70,8 +73,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* Center: Nav Links */}
-        <nav className="pill-nav-links">
+        {/* Center: Nav Links (Desktop) */}
+        <nav className="pill-nav-links desktop-only">
           <button
             className={`pill-nav-btn ${currentTab === 'landing' ? 'active' : ''}`}
             onClick={() => setCurrentTab('landing')}
@@ -354,8 +357,185 @@ export const Navbar: React.FC<NavbarProps> = ({
               </div>
             )}
           </div>
+          {/* Mobile Hamburger Trigger */}
+          <button
+            type="button"
+            className="mobile-hamburger-btn"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle navigation menu"
+          >
+            {mobileMenuOpen ? <X size={19} /> : <Menu size={19} />}
+          </button>
         </div>
       </header>
+
+      {/* Mobile Navigation Drawer Sheet */}
+      {mobileMenuOpen && (
+        <div className="mobile-nav-drawer animate-fadeIn">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            <button
+              className={`mobile-nav-item ${currentTab === 'landing' ? 'active' : ''}`}
+              onClick={() => {
+                setCurrentTab('landing');
+                setMobileMenuOpen(false);
+              }}
+            >
+              <Droplet size={16} />
+              <span>Overview</span>
+            </button>
+
+            <button
+              className={`mobile-nav-item ${currentTab === 'command' ? 'active' : ''}`}
+              onClick={() => {
+                setCurrentTab('command');
+                setMobileMenuOpen(false);
+              }}
+            >
+              <Activity size={16} />
+              <span>Command Centre</span>
+            </button>
+
+            <button
+              className={`mobile-nav-item ${currentTab === 'tracking' ? 'active' : ''}`}
+              onClick={() => {
+                setCurrentTab('tracking');
+                setMobileMenuOpen(false);
+              }}
+              style={{
+                background: currentTab === 'tracking' ? '#0284c7' : 'rgba(14, 165, 233, 0.08)',
+                color: currentTab === 'tracking' ? '#ffffff' : '#0284c7',
+              }}
+            >
+              <Navigation size={16} />
+              <span>Live Tracking Map</span>
+            </button>
+
+            {canAccessHospital && (
+              <button
+                className={`mobile-nav-item ${currentTab === 'hospital' ? 'active' : ''}`}
+                onClick={() => {
+                  setCurrentTab('hospital');
+                  setMobileMenuOpen(false);
+                }}
+              >
+                <Building2 size={16} />
+                <span>Hospital Triage</span>
+              </button>
+            )}
+
+            {canAccessDonor && (
+              <button
+                className={`mobile-nav-item ${currentTab === 'donor' ? 'active' : ''}`}
+                onClick={() => {
+                  setCurrentTab('donor');
+                  setMobileMenuOpen(false);
+                }}
+              >
+                <Users size={16} />
+                <span>Donor Mobilisation</span>
+              </button>
+            )}
+
+            {canAccessBloodCentre && (
+              <button
+                className={`mobile-nav-item ${currentTab === 'bloodcentre' ? 'active' : ''}`}
+                onClick={() => {
+                  setCurrentTab('bloodcentre');
+                  setMobileMenuOpen(false);
+                }}
+              >
+                <Droplet size={16} />
+                <span>Blood Centre Inventory</span>
+              </button>
+            )}
+
+            <button
+              className={`mobile-nav-item ${currentTab === 'whatsapp' ? 'active' : ''}`}
+              onClick={() => {
+                setCurrentTab('whatsapp');
+                setMobileMenuOpen(false);
+              }}
+              style={{
+                background: currentTab === 'whatsapp' ? '#16a34a' : 'rgba(34, 197, 94, 0.1)',
+                color: currentTab === 'whatsapp' ? '#ffffff' : '#15803d',
+              }}
+            >
+              <MessageCircle size={16} />
+              <span>WhatsApp Dispatcher</span>
+            </button>
+
+            <button
+              className={`mobile-nav-item ${currentTab === 'genetic' ? 'active' : ''}`}
+              onClick={() => {
+                setCurrentTab('genetic');
+                setMobileMenuOpen(false);
+              }}
+            >
+              <Dna size={16} />
+              <span>Genetic Risk Calculator</span>
+            </button>
+
+            {canAccessAdmin && (
+              <button
+                className={`mobile-nav-item ${currentTab === 'admin' ? 'active' : ''}`}
+                onClick={() => {
+                  setCurrentTab('admin');
+                  setMobileMenuOpen(false);
+                }}
+              >
+                <Shield size={16} />
+                <span>Compliance &amp; Audit</span>
+              </button>
+            )}
+
+            {/* Quick Mobile Auth Button */}
+            <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '0.5rem', marginTop: '0.25rem' }}>
+              {currentUserProfile ? (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0.75rem', background: '#f8fafc', borderRadius: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <UserCheck size={16} color="#0284c7" />
+                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0f172a' }}>
+                      {currentUserProfile.full_name} ({currentUserProfile.role.replace('_', ' ')})
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      handleSignOut();
+                      setMobileMenuOpen(false);
+                    }}
+                    style={{ background: '#fee2e2', color: '#dc2626', padding: '0.3rem 0.6rem', borderRadius: '6px', fontSize: '0.72rem', fontWeight: 800 }}
+                  >
+                    Log Out
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    onOpenAuth();
+                    setMobileMenuOpen(false);
+                  }}
+                  style={{
+                    width: '100%',
+                    background: '#0f172a',
+                    color: '#ffffff',
+                    padding: '0.65rem',
+                    borderRadius: '10px',
+                    fontSize: '0.82rem',
+                    fontWeight: 800,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.4rem',
+                  }}
+                >
+                  <Lock size={14} />
+                  <span>Sign In / Switch Role</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

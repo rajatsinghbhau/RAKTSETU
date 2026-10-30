@@ -81,13 +81,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               background: '#ffffff',
               border: '1px solid #e2e8f0',
               borderRadius: '9999px',
-              padding: '0.25rem 1.25rem',
+              padding: '0.25rem 0.85rem',
               fontSize: '0.75rem',
               color: '#64748b',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.5rem',
-              minWidth: '280px',
+              gap: '0.4rem',
+              maxWidth: '320px',
+              flex: 1,
               justifyContent: 'center',
               boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
             }}
@@ -163,7 +164,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
               <h1
                 style={{
-                  fontSize: '3.1rem',
+                  fontSize: 'clamp(1.85rem, 5vw, 3.1rem)',
                   fontWeight: 900,
                   lineHeight: 1.1,
                   letterSpacing: '-0.025em',

@@ -541,18 +541,10 @@ export const LiveDonorTrackingMap: React.FC = () => {
       )}
 
       {/* 3. MAIN WORKSPACE: MAP (LEFT) + TELEMETRY & CLINICAL CARD (RIGHT) */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'minmax(0, 1.85fr) minmax(320px, 1fr)',
-          gap: '0.85rem',
-          alignItems: 'stretch',
-          height: 'clamp(420px, calc(100vh - 250px), 520px)',
-          minHeight: '420px',
-        }}
-      >
+      <div className="live-tracking-grid">
         {/* LEFT COLUMN: TACTICAL MAP & OPERATIONAL CONTROLS */}
         <div
+          className="live-tracking-map-col"
           style={{
             background: '#090d16',
             border: '1px solid rgba(255, 255, 255, 0.12)',

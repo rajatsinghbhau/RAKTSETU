@@ -261,7 +261,7 @@ export const GeneticRiskCalculator: React.FC = () => {
               <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', marginBottom: '0.4rem' }}>
                 Generation I: Grandparents
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.6rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.6rem' }}>
                 {['paternalGrandpa', 'paternalGrandma', 'maternalGrandpa', 'maternalGrandma'].map((id) => {
                   const person = pedigree[id];
                   return (
@@ -302,7 +302,7 @@ export const GeneticRiskCalculator: React.FC = () => {
               <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#e11d48', textTransform: 'uppercase', marginBottom: '0.4rem' }}>
                 Generation II: Parents (Direct Genetic Contributors)
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.6rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.6rem' }}>
                 {['father', 'mother'].map((id) => {
                   const person = pedigree[id];
                   return (
@@ -342,7 +342,7 @@ export const GeneticRiskCalculator: React.FC = () => {
               <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', marginBottom: '0.4rem' }}>
                 Generation III: Evaluated Offspring
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.6rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.6rem' }}>
                 {['child1', 'child2'].map((id) => {
                   const person = pedigree[id];
                   return (
