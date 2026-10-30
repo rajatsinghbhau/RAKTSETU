@@ -12,6 +12,7 @@ import {
   Lock,
   LogOut,
   MessageCircle,
+  Navigation,
   Radio,
   Shield,
   ShieldAlert,
@@ -85,6 +86,19 @@ export const Navbar: React.FC<NavbarProps> = ({
             Command
           </button>
 
+          <button
+            className={`pill-nav-btn ${currentTab === 'tracking' ? 'active' : ''}`}
+            onClick={() => setCurrentTab('tracking')}
+            style={{
+              color: currentTab === 'tracking' ? '#ffffff' : '#38bdf8',
+              background: currentTab === 'tracking' ? '#0284c7' : 'rgba(14, 165, 233, 0.1)',
+              fontWeight: 700,
+            }}
+          >
+            <Navigation size={14} />
+            Live Tracking
+          </button>
+
           {canAccessHospital && (
             <button
               className={`pill-nav-btn ${currentTab === 'hospital' ? 'active' : ''}`}
@@ -148,30 +162,31 @@ export const Navbar: React.FC<NavbarProps> = ({
         </nav>
 
         {/* Right: Auth, User Profile & Notifications */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
           {currentUserProfile ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
               <div
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.4rem',
+                  gap: '0.35rem',
                   background: '#f1f5f9',
-                  padding: '0.3rem 0.7rem',
+                  padding: '0.3rem 0.65rem',
                   borderRadius: '9999px',
+                  border: '1px solid #e2e8f0',
                 }}
               >
                 <UserCheck size={13} color="#0284c7" />
-                <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#0f172a' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>
                   {currentUserProfile.full_name.split(' ')[0]}
                 </span>
                 <span
                   style={{
-                    fontSize: '0.65rem',
+                    fontSize: '0.62rem',
                     fontWeight: 700,
                     background: '#e2e8f0',
                     color: '#475569',
-                    padding: '0.1rem 0.4rem',
+                    padding: '0.1rem 0.35rem',
                     borderRadius: '4px',
                   }}
                 >
@@ -187,16 +202,17 @@ export const Navbar: React.FC<NavbarProps> = ({
                   border: '1px solid #fca5a5',
                   color: '#dc2626',
                   borderRadius: '9999px',
-                  padding: '0.35rem 0.75rem',
-                  fontSize: '0.75rem',
+                  padding: '0.3rem 0.65rem',
+                  fontSize: '0.72rem',
                   fontWeight: 700,
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.35rem',
+                  gap: '0.3rem',
                   cursor: 'pointer',
+                  whiteSpace: 'nowrap',
                 }}
               >
-                <LogOut size={13} /> Log Out
+                <LogOut size={12} /> Log Out
               </button>
             </div>
           ) : (
@@ -207,22 +223,24 @@ export const Navbar: React.FC<NavbarProps> = ({
                 color: '#ffffff',
                 border: 'none',
                 borderRadius: '9999px',
-                padding: '0.45rem 1.15rem',
-                fontSize: '0.8rem',
+                padding: '0.38rem 0.9rem',
+                fontSize: '0.78rem',
                 fontWeight: 700,
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.4rem',
+                gap: '0.35rem',
                 cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(15, 23, 42, 0.25)',
+                boxShadow: '0 2px 8px rgba(15, 23, 42, 0.25)',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
               }}
             >
-              <Lock size={13} /> Sign In
+              <Lock size={12} /> Sign In
             </button>
           )}
 
           {/* Notification Bell */}
-          <div style={{ position: 'relative' }}>
+          <div style={{ position: 'relative', flexShrink: 0 }}>
             <button
               style={{
                 background: '#f1f5f9',

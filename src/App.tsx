@@ -8,6 +8,7 @@ import { FulfilmentCommandCentre } from './components/FulfilmentCommandCentre';
 import { GeneticRiskCalculator } from './components/GeneticRiskCalculator';
 import { HospitalDashboard } from './components/HospitalDashboard';
 import { LandingPage } from './components/LandingPage';
+import { LiveDonorTrackingMap } from './components/LiveDonorTrackingMap';
 import { Navbar } from './components/Navbar';
 import { WhatsAppDispatcher } from './components/WhatsAppDispatcher';
 import { RealBackendService } from './services/realBackend';
@@ -185,6 +186,10 @@ export function App() {
             onRefreshData={refreshAllData}
             auditLogs={auditLogs}
           />
+        )}
+
+        {currentTab === 'tracking' && (
+          <LiveDonorTrackingMap />
         )}
 
         {currentTab === 'hospital' && (
