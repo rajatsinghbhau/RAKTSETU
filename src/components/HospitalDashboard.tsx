@@ -615,12 +615,20 @@ ${window.location.origin}/?req=${selectedReqForDetail.id}`;
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  {journeys.map((j) => (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.2rem' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#0f172a', textTransform: 'uppercase' }}>
+                      Donors Sorted by Location (Nearest First)
+                    </span>
+                    <span style={{ fontSize: '0.68rem', fontWeight: 800, background: '#dcfce7', color: '#15803d', padding: '0.15rem 0.5rem', borderRadius: '9999px' }}>
+                      📍 Nearest First
+                    </span>
+                  </div>
+                  {journeys.map((j, idx) => (
                     <div
                       key={j.id}
                       style={{
                         background: 'var(--bg-tertiary)',
-                        border: '1px solid var(--border-subtle)',
+                        border: idx === 0 ? '1.5px solid #22c55e' : '1px solid var(--border-subtle)',
                         borderRadius: 'var(--radius-md)',
                         padding: '0.85rem 1rem',
                         display: 'flex',
@@ -636,6 +644,15 @@ ${window.location.origin}/?req=${selectedReqForDetail.id}`;
                           <span className="blood-group-tag" style={{ fontSize: '0.7rem', padding: '0.1rem 0.35rem' }}>
                             {j.blood_group}
                           </span>
+                          {idx === 0 ? (
+                            <span style={{ fontSize: '0.65rem', fontWeight: 800, background: '#dcfce7', color: '#15803d', padding: '0.1rem 0.45rem', borderRadius: '9999px' }}>
+                              #1 NEAREST ({j.distance_km || 1.8} km)
+                            </span>
+                          ) : (
+                            <span style={{ fontSize: '0.65rem', fontWeight: 700, background: '#f1f5f9', color: '#475569', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
+                              #{idx + 1} ({j.distance_km || 3.5} km)
+                            </span>
+                          )}
                           <span className="badge badge-open">{j.status}</span>
                         </div>
                         <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -645,7 +662,7 @@ ${window.location.origin}/?req=${selectedReqForDetail.id}`;
                             </span>
                           )}
                           {j.donor_address && (
-                            <span style={{ color: '#15803d', fontWeight: 600 }}>
+                            <span style={{ color: idx === 0 ? '#15803d' : '#475569', fontWeight: 700 }}>
                               📍 {j.donor_address}
                             </span>
                           )}

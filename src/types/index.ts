@@ -144,6 +144,8 @@ export interface DonorJourney {
   donor_phone?: string;
   donor_address?: string;
   donor_city?: string;
+  distance_km?: number;
+  eta_mins?: number;
 }
 
 export interface BloodUnit {

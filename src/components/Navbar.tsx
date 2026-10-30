@@ -54,17 +54,36 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   const userRole = currentUserProfile?.role;
-  // If not logged in (guest), show all tabs. If logged in, enforce role boundaries:
-  const canAccessHospital = !userRole || ['HOSPITAL_COORDINATOR', 'HOSPITAL_ADMIN', 'SUPER_ADMIN', 'AUDITOR'].includes(userRole);
-  const canAccessDonor = !userRole || ['DONOR', 'HOSPITAL_COORDINATOR', 'SUPER_ADMIN', 'AUDITOR'].includes(userRole);
-  const canAccessBloodCentre = !userRole || ['BLOOD_CENTRE_OPERATOR', 'BLOOD_CENTRE_ADMIN', 'SUPER_ADMIN', 'AUDITOR'].includes(userRole);
-  const canAccessAdmin = !userRole || ['AUDITOR', 'SUPER_ADMIN', 'HOSPITAL_ADMIN'].includes(userRole);
+
+  // Strict Role-Based Navigation Definitions:
+  // - GUEST: Only Overview & Sign In
+  // - DONOR: Strictly 'donor' (My Donor Portal) - ALL OTHER TABS INVISIBLE
+  // - HOSPITAL: hospital, command, tracking, whatsapp, genetic (+ admin if HOSPITAL_ADMIN)
+  // - BLOOD_CENTRE: bloodcentre, command, tracking (+ admin if BLOOD_CENTRE_ADMIN)
+  // - AUDITOR / SUPER_ADMIN: Governance & compliance oversight
+
+  const getPrimaryDashboardForRole = (role?: string) => {
+    if (!role) return 'landing';
+    if (role === 'DONOR') return 'donor';
+    if (role.startsWith('HOSPITAL')) return 'hospital';
+    if (role.startsWith('BLOOD_CENTRE')) return 'bloodcentre';
+    return 'command';
+  };
+
+  const isDonor = userRole === 'DONOR';
+  const isHospital = userRole === 'HOSPITAL_COORDINATOR' || userRole === 'HOSPITAL_ADMIN';
+  const isBloodCentre = userRole === 'BLOOD_CENTRE_OPERATOR' || userRole === 'BLOOD_CENTRE_ADMIN';
+  const isAuditorOrAdmin = userRole === 'AUDITOR' || userRole === 'SUPER_ADMIN';
 
   return (
     <div className="floating-header-wrapper">
       <header className="floating-nav-pill">
-        {/* Left: Brand Pill */}
-        <div className="brand-pill" onClick={() => setCurrentTab('landing')}>
+        {/* Left: Brand Pill - Routes to user's dedicated primary role dashboard */}
+        <div
+          className="brand-pill"
+          onClick={() => setCurrentTab(getPrimaryDashboardForRole(userRole))}
+          title={`RAKTSETU - Go to ${userRole ? userRole.replace('_', ' ') + ' Dashboard' : 'Overview'}`}
+        >
           <div className="brand-pill-logo">
             <Droplet size={18} fill="currentColor" />
           </div>
@@ -73,94 +92,188 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* Center: Nav Links (Desktop) */}
+        {/* Center: Nav Links (Desktop) - Strictly filtered per user role */}
         <nav className="pill-nav-links desktop-only">
-          <button
-            className={`pill-nav-btn ${currentTab === 'landing' ? 'active' : ''}`}
-            onClick={() => setCurrentTab('landing')}
-          >
-            Overview
-          </button>
-          <button
-            className={`pill-nav-btn ${currentTab === 'command' ? 'active' : ''}`}
-            onClick={() => setCurrentTab('command')}
-          >
-            <Activity size={14} />
-            Command
-          </button>
-
-          <button
-            className={`pill-nav-btn ${currentTab === 'tracking' ? 'active' : ''}`}
-            onClick={() => setCurrentTab('tracking')}
-            style={{
-              color: currentTab === 'tracking' ? '#ffffff' : '#38bdf8',
-              background: currentTab === 'tracking' ? '#0284c7' : 'rgba(14, 165, 233, 0.1)',
-              fontWeight: 700,
-            }}
-          >
-            <Navigation size={14} />
-            Live Tracking
-          </button>
-
-          {canAccessHospital && (
+          {/* Guest Only: Overview Tab */}
+          {!currentUserProfile && (
             <button
-              className={`pill-nav-btn ${currentTab === 'hospital' ? 'active' : ''}`}
-              onClick={() => setCurrentTab('hospital')}
+              className={`pill-nav-btn ${currentTab === 'landing' ? 'active' : ''}`}
+              onClick={() => setCurrentTab('landing')}
             >
-              <Building2 size={14} />
-              Hospital
+              Overview
             </button>
           )}
 
-          {canAccessDonor && (
+          {/* DONOR ROLE: Strictly My Donor Portal ONLY */}
+          {isDonor && (
             <button
               className={`pill-nav-btn ${currentTab === 'donor' ? 'active' : ''}`}
               onClick={() => setCurrentTab('donor')}
+              style={{
+                background: '#e11d48',
+                color: '#ffffff',
+                fontWeight: 700,
+              }}
             >
               <Users size={14} />
-              Donors
+              My Donor Portal
             </button>
           )}
 
-          {canAccessBloodCentre && (
-            <button
-              className={`pill-nav-btn ${currentTab === 'bloodcentre' ? 'active' : ''}`}
-              onClick={() => setCurrentTab('bloodcentre')}
-            >
-              <Droplet size={14} />
-              Blood Centre
-            </button>
+          {/* HOSPITAL ROLE */}
+          {isHospital && (
+            <>
+              <button
+                className={`pill-nav-btn ${currentTab === 'hospital' ? 'active' : ''}`}
+                onClick={() => setCurrentTab('hospital')}
+              >
+                <Building2 size={14} />
+                Hospital Triage
+              </button>
+              <button
+                className={`pill-nav-btn ${currentTab === 'command' ? 'active' : ''}`}
+                onClick={() => setCurrentTab('command')}
+              >
+                <Activity size={14} />
+                Command
+              </button>
+              <button
+                className={`pill-nav-btn ${currentTab === 'tracking' ? 'active' : ''}`}
+                onClick={() => setCurrentTab('tracking')}
+                style={{
+                  color: currentTab === 'tracking' ? '#ffffff' : '#38bdf8',
+                  background: currentTab === 'tracking' ? '#0284c7' : 'rgba(14, 165, 233, 0.1)',
+                  fontWeight: 700,
+                }}
+              >
+                <Navigation size={14} />
+                Live Tracking
+              </button>
+              <button
+                className={`pill-nav-btn ${currentTab === 'whatsapp' ? 'active' : ''}`}
+                onClick={() => setCurrentTab('whatsapp')}
+                style={{
+                  color: currentTab === 'whatsapp' ? '#ffffff' : '#15803d',
+                  background: currentTab === 'whatsapp' ? '#16a34a' : 'rgba(34, 197, 94, 0.1)',
+                  fontWeight: 700,
+                }}
+              >
+                <MessageCircle size={14} />
+                WhatsApp
+              </button>
+              <button
+                className={`pill-nav-btn ${currentTab === 'genetic' ? 'active' : ''}`}
+                onClick={() => setCurrentTab('genetic')}
+              >
+                <Dna size={14} />
+                Genetic Risk
+              </button>
+              {userRole === 'HOSPITAL_ADMIN' && (
+                <button
+                  className={`pill-nav-btn ${currentTab === 'admin' ? 'active' : ''}`}
+                  onClick={() => setCurrentTab('admin')}
+                >
+                  <Shield size={14} />
+                  Audit
+                </button>
+              )}
+            </>
           )}
 
-          <button
-            className={`pill-nav-btn ${currentTab === 'whatsapp' ? 'active' : ''}`}
-            onClick={() => setCurrentTab('whatsapp')}
-            style={{
-              color: currentTab === 'whatsapp' ? '#ffffff' : '#15803d',
-              background: currentTab === 'whatsapp' ? '#16a34a' : 'rgba(34, 197, 94, 0.1)',
-              fontWeight: 700,
-            }}
-          >
-            <MessageCircle size={14} />
-            WhatsApp
-          </button>
+          {/* BLOOD CENTRE ROLE */}
+          {isBloodCentre && (
+            <>
+              <button
+                className={`pill-nav-btn ${currentTab === 'bloodcentre' ? 'active' : ''}`}
+                onClick={() => setCurrentTab('bloodcentre')}
+              >
+                <Droplet size={14} />
+                Blood Centre
+              </button>
+              <button
+                className={`pill-nav-btn ${currentTab === 'command' ? 'active' : ''}`}
+                onClick={() => setCurrentTab('command')}
+              >
+                <Activity size={14} />
+                Command
+              </button>
+              <button
+                className={`pill-nav-btn ${currentTab === 'tracking' ? 'active' : ''}`}
+                onClick={() => setCurrentTab('tracking')}
+                style={{
+                  color: currentTab === 'tracking' ? '#ffffff' : '#38bdf8',
+                  background: currentTab === 'tracking' ? '#0284c7' : 'rgba(14, 165, 233, 0.1)',
+                  fontWeight: 700,
+                }}
+              >
+                <Navigation size={14} />
+                Live Tracking
+              </button>
+              {userRole === 'BLOOD_CENTRE_ADMIN' && (
+                <button
+                  className={`pill-nav-btn ${currentTab === 'admin' ? 'active' : ''}`}
+                  onClick={() => setCurrentTab('admin')}
+                >
+                  <Shield size={14} />
+                  Audit
+                </button>
+              )}
+            </>
+          )}
 
-          <button
-            className={`pill-nav-btn ${currentTab === 'genetic' ? 'active' : ''}`}
-            onClick={() => setCurrentTab('genetic')}
-          >
-            <Dna size={14} />
-            Genetic Risk
-          </button>
-
-          {canAccessAdmin && (
-            <button
-              className={`pill-nav-btn ${currentTab === 'admin' ? 'active' : ''}`}
-              onClick={() => setCurrentTab('admin')}
-            >
-              <Shield size={14} />
-              Audit
-            </button>
+          {/* AUDITOR / SUPER ADMIN ROLE */}
+          {isAuditorOrAdmin && (
+            <>
+              <button
+                className={`pill-nav-btn ${currentTab === 'command' ? 'active' : ''}`}
+                onClick={() => setCurrentTab('command')}
+              >
+                <Activity size={14} />
+                Command
+              </button>
+              <button
+                className={`pill-nav-btn ${currentTab === 'admin' ? 'active' : ''}`}
+                onClick={() => setCurrentTab('admin')}
+              >
+                <Shield size={14} />
+                Audit &amp; Logs
+              </button>
+              <button
+                className={`pill-nav-btn ${currentTab === 'hospital' ? 'active' : ''}`}
+                onClick={() => setCurrentTab('hospital')}
+              >
+                <Building2 size={14} />
+                Hospital
+              </button>
+              <button
+                className={`pill-nav-btn ${currentTab === 'bloodcentre' ? 'active' : ''}`}
+                onClick={() => setCurrentTab('bloodcentre')}
+              >
+                <Droplet size={14} />
+                Blood Centre
+              </button>
+              <button
+                className={`pill-nav-btn ${currentTab === 'tracking' ? 'active' : ''}`}
+                onClick={() => setCurrentTab('tracking')}
+              >
+                <Navigation size={14} />
+                Live Tracking
+              </button>
+              <button
+                className={`pill-nav-btn ${currentTab === 'whatsapp' ? 'active' : ''}`}
+                onClick={() => setCurrentTab('whatsapp')}
+              >
+                <MessageCircle size={14} />
+                WhatsApp
+              </button>
+              <button
+                className={`pill-nav-btn ${currentTab === 'genetic' ? 'active' : ''}`}
+                onClick={() => setCurrentTab('genetic')}
+              >
+                <Dna size={14} />
+                Genetic Risk
+              </button>
+            </>
           )}
         </nav>
 
@@ -373,119 +486,241 @@ export const Navbar: React.FC<NavbarProps> = ({
       {mobileMenuOpen && (
         <div className="mobile-nav-drawer animate-fadeIn">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-            <button
-              className={`mobile-nav-item ${currentTab === 'landing' ? 'active' : ''}`}
-              onClick={() => {
-                setCurrentTab('landing');
-                setMobileMenuOpen(false);
-              }}
-            >
-              <Droplet size={16} />
-              <span>Overview</span>
-            </button>
-
-            <button
-              className={`mobile-nav-item ${currentTab === 'command' ? 'active' : ''}`}
-              onClick={() => {
-                setCurrentTab('command');
-                setMobileMenuOpen(false);
-              }}
-            >
-              <Activity size={16} />
-              <span>Command Centre</span>
-            </button>
-
-            <button
-              className={`mobile-nav-item ${currentTab === 'tracking' ? 'active' : ''}`}
-              onClick={() => {
-                setCurrentTab('tracking');
-                setMobileMenuOpen(false);
-              }}
-              style={{
-                background: currentTab === 'tracking' ? '#0284c7' : 'rgba(14, 165, 233, 0.08)',
-                color: currentTab === 'tracking' ? '#ffffff' : '#0284c7',
-              }}
-            >
-              <Navigation size={16} />
-              <span>Live Tracking Map</span>
-            </button>
-
-            {canAccessHospital && (
+            {/* GUEST: Overview */}
+            {!currentUserProfile && (
               <button
-                className={`mobile-nav-item ${currentTab === 'hospital' ? 'active' : ''}`}
+                className={`mobile-nav-item ${currentTab === 'landing' ? 'active' : ''}`}
                 onClick={() => {
-                  setCurrentTab('hospital');
+                  setCurrentTab('landing');
                   setMobileMenuOpen(false);
                 }}
               >
-                <Building2 size={16} />
-                <span>Hospital Triage</span>
+                <Droplet size={16} />
+                <span>Overview &amp; Role Portal</span>
               </button>
             )}
 
-            {canAccessDonor && (
+            {/* DONOR ROLE: Strictly My Donor Portal ONLY */}
+            {isDonor && (
               <button
                 className={`mobile-nav-item ${currentTab === 'donor' ? 'active' : ''}`}
                 onClick={() => {
                   setCurrentTab('donor');
                   setMobileMenuOpen(false);
                 }}
+                style={{
+                  background: currentTab === 'donor' ? '#e11d48' : '#fff1f2',
+                  color: currentTab === 'donor' ? '#ffffff' : '#e11d48',
+                  fontWeight: 800,
+                }}
               >
                 <Users size={16} />
-                <span>Donor Mobilisation</span>
+                <span>My Donor Portal</span>
               </button>
             )}
 
-            {canAccessBloodCentre && (
-              <button
-                className={`mobile-nav-item ${currentTab === 'bloodcentre' ? 'active' : ''}`}
-                onClick={() => {
-                  setCurrentTab('bloodcentre');
-                  setMobileMenuOpen(false);
-                }}
-              >
-                <Droplet size={16} />
-                <span>Blood Centre Inventory</span>
-              </button>
+            {/* HOSPITAL ROLE */}
+            {isHospital && (
+              <>
+                <button
+                  className={`mobile-nav-item ${currentTab === 'hospital' ? 'active' : ''}`}
+                  onClick={() => {
+                    setCurrentTab('hospital');
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  <Building2 size={16} />
+                  <span>Hospital Triage</span>
+                </button>
+                <button
+                  className={`mobile-nav-item ${currentTab === 'command' ? 'active' : ''}`}
+                  onClick={() => {
+                    setCurrentTab('command');
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  <Activity size={16} />
+                  <span>Command Centre</span>
+                </button>
+                <button
+                  className={`mobile-nav-item ${currentTab === 'tracking' ? 'active' : ''}`}
+                  onClick={() => {
+                    setCurrentTab('tracking');
+                    setMobileMenuOpen(false);
+                  }}
+                  style={{
+                    background: currentTab === 'tracking' ? '#0284c7' : 'rgba(14, 165, 233, 0.08)',
+                    color: currentTab === 'tracking' ? '#ffffff' : '#0284c7',
+                  }}
+                >
+                  <Navigation size={16} />
+                  <span>Live Tracking Map</span>
+                </button>
+                <button
+                  className={`mobile-nav-item ${currentTab === 'whatsapp' ? 'active' : ''}`}
+                  onClick={() => {
+                    setCurrentTab('whatsapp');
+                    setMobileMenuOpen(false);
+                  }}
+                  style={{
+                    background: currentTab === 'whatsapp' ? '#16a34a' : 'rgba(34, 197, 94, 0.1)',
+                    color: currentTab === 'whatsapp' ? '#ffffff' : '#15803d',
+                  }}
+                >
+                  <MessageCircle size={16} />
+                  <span>WhatsApp Dispatcher</span>
+                </button>
+                <button
+                  className={`mobile-nav-item ${currentTab === 'genetic' ? 'active' : ''}`}
+                  onClick={() => {
+                    setCurrentTab('genetic');
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  <Dna size={16} />
+                  <span>Genetic Risk Calculator</span>
+                </button>
+                {userRole === 'HOSPITAL_ADMIN' && (
+                  <button
+                    className={`mobile-nav-item ${currentTab === 'admin' ? 'active' : ''}`}
+                    onClick={() => {
+                      setCurrentTab('admin');
+                      setMobileMenuOpen(false);
+                    }}
+                  >
+                    <Shield size={16} />
+                    <span>Compliance &amp; Audit</span>
+                  </button>
+                )}
+              </>
             )}
 
-            <button
-              className={`mobile-nav-item ${currentTab === 'whatsapp' ? 'active' : ''}`}
-              onClick={() => {
-                setCurrentTab('whatsapp');
-                setMobileMenuOpen(false);
-              }}
-              style={{
-                background: currentTab === 'whatsapp' ? '#16a34a' : 'rgba(34, 197, 94, 0.1)',
-                color: currentTab === 'whatsapp' ? '#ffffff' : '#15803d',
-              }}
-            >
-              <MessageCircle size={16} />
-              <span>WhatsApp Dispatcher</span>
-            </button>
+            {/* BLOOD CENTRE ROLE */}
+            {isBloodCentre && (
+              <>
+                <button
+                  className={`mobile-nav-item ${currentTab === 'bloodcentre' ? 'active' : ''}`}
+                  onClick={() => {
+                    setCurrentTab('bloodcentre');
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  <Droplet size={16} />
+                  <span>Blood Centre Inventory</span>
+                </button>
+                <button
+                  className={`mobile-nav-item ${currentTab === 'command' ? 'active' : ''}`}
+                  onClick={() => {
+                    setCurrentTab('command');
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  <Activity size={16} />
+                  <span>Command Centre</span>
+                </button>
+                <button
+                  className={`mobile-nav-item ${currentTab === 'tracking' ? 'active' : ''}`}
+                  onClick={() => {
+                    setCurrentTab('tracking');
+                    setMobileMenuOpen(false);
+                  }}
+                  style={{
+                    background: currentTab === 'tracking' ? '#0284c7' : 'rgba(14, 165, 233, 0.08)',
+                    color: currentTab === 'tracking' ? '#ffffff' : '#0284c7',
+                  }}
+                >
+                  <Navigation size={16} />
+                  <span>Live Tracking Map</span>
+                </button>
+                {userRole === 'BLOOD_CENTRE_ADMIN' && (
+                  <button
+                    className={`mobile-nav-item ${currentTab === 'admin' ? 'active' : ''}`}
+                    onClick={() => {
+                      setCurrentTab('admin');
+                      setMobileMenuOpen(false);
+                    }}
+                  >
+                    <Shield size={16} />
+                    <span>Compliance &amp; Audit</span>
+                  </button>
+                )}
+              </>
+            )}
 
-            <button
-              className={`mobile-nav-item ${currentTab === 'genetic' ? 'active' : ''}`}
-              onClick={() => {
-                setCurrentTab('genetic');
-                setMobileMenuOpen(false);
-              }}
-            >
-              <Dna size={16} />
-              <span>Genetic Risk Calculator</span>
-            </button>
-
-            {canAccessAdmin && (
-              <button
-                className={`mobile-nav-item ${currentTab === 'admin' ? 'active' : ''}`}
-                onClick={() => {
-                  setCurrentTab('admin');
-                  setMobileMenuOpen(false);
-                }}
-              >
-                <Shield size={16} />
-                <span>Compliance &amp; Audit</span>
-              </button>
+            {/* AUDITOR / SUPER ADMIN ROLE */}
+            {isAuditorOrAdmin && (
+              <>
+                <button
+                  className={`mobile-nav-item ${currentTab === 'command' ? 'active' : ''}`}
+                  onClick={() => {
+                    setCurrentTab('command');
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  <Activity size={16} />
+                  <span>Command Centre</span>
+                </button>
+                <button
+                  className={`mobile-nav-item ${currentTab === 'admin' ? 'active' : ''}`}
+                  onClick={() => {
+                    setCurrentTab('admin');
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  <Shield size={16} />
+                  <span>Compliance &amp; Audit</span>
+                </button>
+                <button
+                  className={`mobile-nav-item ${currentTab === 'hospital' ? 'active' : ''}`}
+                  onClick={() => {
+                    setCurrentTab('hospital');
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  <Building2 size={16} />
+                  <span>Hospital Triage</span>
+                </button>
+                <button
+                  className={`mobile-nav-item ${currentTab === 'bloodcentre' ? 'active' : ''}`}
+                  onClick={() => {
+                    setCurrentTab('bloodcentre');
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  <Droplet size={16} />
+                  <span>Blood Centre Inventory</span>
+                </button>
+                <button
+                  className={`mobile-nav-item ${currentTab === 'tracking' ? 'active' : ''}`}
+                  onClick={() => {
+                    setCurrentTab('tracking');
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  <Navigation size={16} />
+                  <span>Live Tracking Map</span>
+                </button>
+                <button
+                  className={`mobile-nav-item ${currentTab === 'whatsapp' ? 'active' : ''}`}
+                  onClick={() => {
+                    setCurrentTab('whatsapp');
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  <MessageCircle size={16} />
+                  <span>WhatsApp Dispatcher</span>
+                </button>
+                <button
+                  className={`mobile-nav-item ${currentTab === 'genetic' ? 'active' : ''}`}
+                  onClick={() => {
+                    setCurrentTab('genetic');
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  <Dna size={16} />
+                  <span>Genetic Risk Calculator</span>
+                </button>
+              </>
             )}
 
             {/* Quick Mobile Auth Button */}

@@ -101,27 +101,62 @@ export function App() {
       refreshAllData();
     });
 
+    const handleCustomAuth = () => {
+      refreshAllData();
+    };
+    window.addEventListener('raktsetu_auth_change', handleCustomAuth);
+
     return () => {
       authListener.subscription.unsubscribe();
       unsubscribeRealtime();
+      window.removeEventListener('raktsetu_auth_change', handleCustomAuth);
     };
   }, []);
 
+  const ROLE_ALLOWED_TABS: Record<string, string[]> = {
+    DONOR: ['donor'],
+    HOSPITAL_COORDINATOR: ['hospital', 'command', 'tracking', 'whatsapp', 'genetic'],
+    HOSPITAL_ADMIN: ['hospital', 'command', 'tracking', 'whatsapp', 'genetic', 'admin'],
+    BLOOD_CENTRE_OPERATOR: ['bloodcentre', 'command', 'tracking'],
+    BLOOD_CENTRE_ADMIN: ['bloodcentre', 'command', 'tracking', 'admin'],
+    AUDITOR: ['command', 'admin', 'hospital', 'bloodcentre', 'tracking', 'whatsapp', 'genetic'],
+    SUPER_ADMIN: ['command', 'admin', 'hospital', 'bloodcentre', 'donor', 'tracking', 'whatsapp', 'genetic'],
+  };
+
   const navigateToRoleDashboard = (profile: Profile | null) => {
-    if (!profile) return;
+    if (!profile) {
+      setCurrentTab('landing');
+      return;
+    }
     const role = profile.role;
-    if (role === 'HOSPITAL_COORDINATOR' || role === 'HOSPITAL_ADMIN') {
-      setCurrentTab('hospital');
-    } else if (role === 'DONOR') {
+    if (role === 'DONOR') {
       setCurrentTab('donor');
+    } else if (role === 'HOSPITAL_COORDINATOR' || role === 'HOSPITAL_ADMIN') {
+      setCurrentTab('hospital');
     } else if (role === 'BLOOD_CENTRE_OPERATOR' || role === 'BLOOD_CENTRE_ADMIN') {
       setCurrentTab('bloodcentre');
     } else if (role === 'AUDITOR' || role === 'SUPER_ADMIN') {
       setCurrentTab('command');
     } else {
-      setCurrentTab('command');
+      setCurrentTab('donor');
     }
   };
+
+  // Strict Role Route Guard: Automatically redirect user to their authorized dashboard
+  useEffect(() => {
+    const role = currentUserProfile?.role;
+    if (role) {
+      const allowed = ROLE_ALLOWED_TABS[role] || ['donor'];
+      if (!allowed.includes(currentTab)) {
+        navigateToRoleDashboard(currentUserProfile);
+      }
+    } else {
+      // Guest is strictly restricted to the Overview role gateway
+      if (currentTab !== 'landing') {
+        setCurrentTab('landing');
+      }
+    }
+  }, [currentUserProfile?.role, currentTab]);
 
   const handleAuthSuccess = async () => {
     await refreshAllData();
@@ -148,10 +183,14 @@ export function App() {
   };
 
   const userRole = currentUserProfile?.role;
-  const canAccessHospital = !userRole || ['HOSPITAL_COORDINATOR', 'HOSPITAL_ADMIN', 'SUPER_ADMIN', 'AUDITOR'].includes(userRole);
-  const canAccessDonor = !userRole || ['DONOR', 'HOSPITAL_COORDINATOR', 'SUPER_ADMIN', 'AUDITOR'].includes(userRole);
-  const canAccessBloodCentre = !userRole || ['BLOOD_CENTRE_OPERATOR', 'BLOOD_CENTRE_ADMIN', 'SUPER_ADMIN', 'AUDITOR'].includes(userRole);
-  const canAccessAdmin = !userRole || ['AUDITOR', 'SUPER_ADMIN', 'HOSPITAL_ADMIN'].includes(userRole);
+  const canAccessHospital = ['HOSPITAL_COORDINATOR', 'HOSPITAL_ADMIN', 'SUPER_ADMIN', 'AUDITOR'].includes(userRole || '');
+  const canAccessDonor = ['DONOR', 'SUPER_ADMIN'].includes(userRole || '');
+  const canAccessBloodCentre = ['BLOOD_CENTRE_OPERATOR', 'BLOOD_CENTRE_ADMIN', 'SUPER_ADMIN', 'AUDITOR'].includes(userRole || '');
+  const canAccessAdmin = ['AUDITOR', 'SUPER_ADMIN', 'HOSPITAL_ADMIN', 'BLOOD_CENTRE_ADMIN'].includes(userRole || '');
+  const canAccessCommand = ['HOSPITAL_COORDINATOR', 'HOSPITAL_ADMIN', 'BLOOD_CENTRE_OPERATOR', 'BLOOD_CENTRE_ADMIN', 'SUPER_ADMIN', 'AUDITOR'].includes(userRole || '');
+  const canAccessTracking = ['HOSPITAL_COORDINATOR', 'HOSPITAL_ADMIN', 'BLOOD_CENTRE_OPERATOR', 'BLOOD_CENTRE_ADMIN', 'SUPER_ADMIN', 'AUDITOR'].includes(userRole || '');
+  const canAccessWhatsApp = ['HOSPITAL_COORDINATOR', 'HOSPITAL_ADMIN', 'SUPER_ADMIN', 'AUDITOR'].includes(userRole || '');
+  const canAccessGenetic = ['HOSPITAL_COORDINATOR', 'HOSPITAL_ADMIN', 'SUPER_ADMIN', 'AUDITOR'].includes(userRole || '');
 
   return (
     <div className="app-container">
@@ -178,18 +217,38 @@ export function App() {
         )}
 
         {currentTab === 'command' && (
-          <FulfilmentCommandCentre
-            requests={requests}
-            selectedRequestId={selectedRequestId}
-            onSelectRequest={(id) => setSelectedRequestId(id)}
-            currentUserProfile={currentUserProfile}
-            onRefreshData={refreshAllData}
-            auditLogs={auditLogs}
-          />
+          canAccessCommand ? (
+            <FulfilmentCommandCentre
+              requests={requests}
+              selectedRequestId={selectedRequestId}
+              onSelectRequest={(id) => setSelectedRequestId(id)}
+              currentUserProfile={currentUserProfile}
+              onRefreshData={refreshAllData}
+              auditLogs={auditLogs}
+            />
+          ) : (
+            <AccessBoundary
+              requiredRoleText="Clinical Coordinators, Blood Centre Operators & Command Staff"
+              userRole={userRole}
+              userName={currentUserProfile?.full_name}
+              onOpenAuth={() => setIsAuthModalOpen(true)}
+              onReturnHome={() => navigateToRoleDashboard(currentUserProfile)}
+            />
+          )
         )}
 
         {currentTab === 'tracking' && (
-          <LiveDonorTrackingMap />
+          canAccessTracking ? (
+            <LiveDonorTrackingMap />
+          ) : (
+            <AccessBoundary
+              requiredRoleText="Authorized Healthcare & Logistics Personnel"
+              userRole={userRole}
+              userName={currentUserProfile?.full_name}
+              onOpenAuth={() => setIsAuthModalOpen(true)}
+              onReturnHome={() => navigateToRoleDashboard(currentUserProfile)}
+            />
+          )
         )}
 
         {currentTab === 'hospital' && (
@@ -252,15 +311,35 @@ export function App() {
         )}
 
         {currentTab === 'whatsapp' && (
-          <WhatsAppDispatcher
-            requests={requests}
-            selectedRequestId={selectedRequestId}
-            onSelectRequest={(id) => setSelectedRequestId(id)}
-          />
+          canAccessWhatsApp ? (
+            <WhatsAppDispatcher
+              requests={requests}
+              selectedRequestId={selectedRequestId}
+              onSelectRequest={(id) => setSelectedRequestId(id)}
+            />
+          ) : (
+            <AccessBoundary
+              requiredRoleText="Hospital Coordinators & Authorized Healthcare Staff"
+              userRole={userRole}
+              userName={currentUserProfile?.full_name}
+              onOpenAuth={() => setIsAuthModalOpen(true)}
+              onReturnHome={() => navigateToRoleDashboard(currentUserProfile)}
+            />
+          )
         )}
 
         {currentTab === 'genetic' && (
-          <GeneticRiskCalculator />
+          canAccessGenetic ? (
+            <GeneticRiskCalculator />
+          ) : (
+            <AccessBoundary
+              requiredRoleText="Clinical Geneticists & Hospital Triage Doctors"
+              userRole={userRole}
+              userName={currentUserProfile?.full_name}
+              onOpenAuth={() => setIsAuthModalOpen(true)}
+              onReturnHome={() => navigateToRoleDashboard(currentUserProfile)}
+            />
+          )
         )}
 
         {currentTab === 'admin' && (
