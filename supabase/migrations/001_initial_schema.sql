@@ -416,3 +416,4 @@ DO $$ BEGIN
   CREATE POLICY "Audit logs immutable read" ON audit_logs FOR SELECT USING (true);
   CREATE POLICY "Notifications access by user" ON notifications FOR ALL USING (user_id = auth.uid());
 EXCEPTION WHEN duplicate_object THEN null; END $$;
+
